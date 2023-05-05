@@ -10,7 +10,6 @@ import {
   Resource,
   useResource$,
   useSignal,
-  useTask$,
   useVisibleTask$
 } from '@builder.io/qwik';
 import { supabase } from '~/supabase/db';
