@@ -5,23 +5,22 @@ import type {
   PostgrestResponseSuccess
 } from '@supabase/postgrest-js';
 import {
-  $,
   component$,
   Resource,
   useResource$,
-  useStore
+  useSignal
 } from '@builder.io/qwik';
 import { supabase } from '~/supabase/db';
 
 export default component$(() => {
-  const todoStore = useStore({ showComplete: true });
+  const isShowComplete = useSignal(true);
 
   const todos = useResource$<todoType[]>(async ({ track }) => {
-    track(() => todoStore.showComplete);
+    track(() => isShowComplete.value);
     let response:
       | PostgrestResponseSuccess<todoType[]>
       | PostgrestResponseFailure;
-    if (todoStore.showComplete) {
+    if (isShowComplete.value) {
       response = await supabase.from('ToDo').select('*');
     } else {
       response = await supabase.from('ToDo').select('*').eq('complete', false);
@@ -52,10 +51,7 @@ export default component$(() => {
           <input
             type="checkbox"
             id="show-completed"
-            checked={todoStore.showComplete}
-            onchange$={$(() => {
-              todoStore.showComplete = !todoStore.showComplete;
-            })}
+            bind:checked={isShowComplete}
           />
           <span>Include Completed</span>
         </label>
