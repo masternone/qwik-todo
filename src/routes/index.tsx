@@ -5,15 +5,30 @@ import type {
   PostgrestResponseSuccess
 } from '@supabase/postgrest-js';
 import {
+  $,
   component$,
   Resource,
   useResource$,
-  useSignal
+  useSignal,
+  useTask$,
+  useVisibleTask$
 } from '@builder.io/qwik';
 import { supabase } from '~/supabase/db';
 
 export default component$(() => {
-  const isShowComplete = useSignal(true);
+  const isShowComplete = useSignal(false);
+
+  const handleCompleteChange = $<(id: string, checked: boolean) => void>(
+    async (id, checked) => {
+      console.log({ id, checked });
+      const response = await supabase
+        .from('ToDo')
+        .update({ complete: checked })
+        .eq('id', id);
+      console.log(response);
+      if (response.error) console.error(response.error);
+    }
+  );
 
   const todos = useResource$<todoType[]>(async ({ track }) => {
     track(() => isShowComplete.value);
@@ -29,6 +44,11 @@ export default component$(() => {
       return response.data || [];
     }
     return [];
+  });
+
+  // this will force the data to be received once the page is loaded
+  useVisibleTask$(() => {
+    isShowComplete.value = true;
   });
 
   return (
@@ -66,6 +86,9 @@ export default component$(() => {
                       type="checkbox"
                       id={todo.id}
                       checked={todo.complete}
+                      onChange$={(event, currentTarget) =>
+                        handleCompleteChange(todo.id, currentTarget.checked)
+                      }
                     />
                     <span>{todo.todo}</span>
                   </label>
