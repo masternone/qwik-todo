@@ -1,10 +1,10 @@
-import { component$, Slot, useStyles$ } from '@builder.io/qwik';
+import Footer from "~/components/footer/footer";
+import Header from "~/components/header/header";
+import type { JSX } from "@builder.io/qwik/jsx-runtime";
+import type { User } from "@supabase/supabase-js";
+import { component$, Slot, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-
-import Header from '~/components/starter/header/header';
-import Footer from '~/components/starter/footer/footer';
-
-import styles from './styles.css?inline';
+import { supabase } from "~/supabase/db";
 
 export const useServerTimeLoader = routeLoader$(() => {
   return {
@@ -12,11 +12,28 @@ export const useServerTimeLoader = routeLoader$(() => {
   };
 });
 
-export default component$(() => {
-  useStyles$(styles);
+export default component$<JSX.Element>(() => {
+  const userSignal = useSignal<User | null>();
+  useVisibleTask$(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      userSignal.value = session?.user ?? null;
+    });
+
+    const {
+      data: { subscription: authListener },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      const currentUser = session?.user;
+      userSignal.value = currentUser ?? null;
+    });
+
+    return () => {
+      authListener?.unsubscribe();
+    };
+  });
+
   return (
     <>
-      <Header />
+      <Header {...{userSignal}}/>
       <main>
         <Slot />
       </main>
