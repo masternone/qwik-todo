@@ -16,6 +16,11 @@ export default component$(({ userSignal }: HeaderProps) => {
     if (error) console.log('Error: ', error.message);
   });
 
+  const handleLogout = $(async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.log('Error: ', error.message);
+  });
+
   return (
     <header class="bg-emerald-200 p-4 drop-shadow">
       <div class="flex items-center justify-between">
@@ -30,11 +35,18 @@ export default component$(({ userSignal }: HeaderProps) => {
             <span>Hello...</span>
             {!!userSignal.value?.user_metadata.avatar_url && (
               <>
-                <img
-                  class="aspect-square w-12 rounded-full"
-                  src={userSignal.value?.user_metadata.avatar_url}
-                  alt="User Avatar"
-                />
+                <a
+                  href="#"
+                  title="Click image to logout"
+                  preventdefault:click
+                  onclick$={() => handleLogout()}
+                >
+                  <img
+                    class="aspect-square w-12 rounded-full"
+                    src={userSignal.value?.user_metadata.avatar_url}
+                    alt="User Avatar"
+                  />
+                </a>
               </>
             )}
           </div>
