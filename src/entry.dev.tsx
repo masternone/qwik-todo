@@ -13,5 +13,5 @@ import { type JSXNode, render, type RenderOptions } from '@builder.io/qwik';
 import Root from './root';
 
 export default function (opts: RenderOptions) {
-  return render(document, <Root /> as JSXNode, opts);
+  return render(document, (<Root />) as JSXNode, opts);
 }

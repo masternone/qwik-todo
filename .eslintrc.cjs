@@ -3,7 +3,7 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
-    node: true,
+    node: true
   },
   extends: [
     'eslint:recommended',
@@ -18,8 +18,8 @@ module.exports = {
     ecmaVersion: 2021,
     sourceType: 'module',
     ecmaFeatures: {
-      jsx: true,
-    },
+      jsx: true
+    }
   },
   plugins: ['@typescript-eslint'],
   rules: {
@@ -39,5 +39,5 @@ module.exports = {
     'no-console': 'off',
     'prefer-spread': 'off',
     'tailwindcss/no-custom-classname': 'off'
-  },
+  }
 };

@@ -1,18 +1,17 @@
-import Footer from "~/components/footer/footer";
-import Header from "~/components/header/header";
-import type { JSX } from "@builder.io/qwik/jsx-runtime";
-import type { User } from "@supabase/supabase-js";
+import Footer from '~/components/footer/footer';
+import Header from '~/components/header/header';
+import type { User } from '@supabase/supabase-js';
 import { component$, Slot, useSignal, useVisibleTask$ } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { supabase } from "~/supabase/db";
+import { supabase } from '~/supabase/db';
 
 export const useServerTimeLoader = routeLoader$(() => {
   return {
-    date: new Date().toISOString(),
+    date: new Date().toISOString()
   };
 });
 
-export default component$<JSX.Element>(() => {
+export default component$(() => {
   const userSignal = useSignal<User | null>();
   useVisibleTask$(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -20,7 +19,7 @@ export default component$<JSX.Element>(() => {
     });
 
     const {
-      data: { subscription: authListener },
+      data: { subscription: authListener }
     } = supabase.auth.onAuthStateChange((_, session) => {
       const currentUser = session?.user;
       userSignal.value = currentUser ?? null;
@@ -33,7 +32,7 @@ export default component$<JSX.Element>(() => {
 
   return (
     <>
-      <Header {...{userSignal}}/>
+      <Header {...{ userSignal }} />
       <main>
         <Slot />
       </main>
