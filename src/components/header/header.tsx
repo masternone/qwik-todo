@@ -1,28 +1,49 @@
-import type { Signal } from "@builder.io/qwik";
-import { component$ } from "@builder.io/qwik";
-import type { User } from "@supabase/supabase-js";
-import { QwikLogo } from "../icons/qwik";
+import type { Provider, User } from '@supabase/supabase-js';
+import type { Signal } from '@builder.io/qwik';
+import { $, component$ } from '@builder.io/qwik';
+import { QwikLogo } from '../icons/qwik';
+import { supabase } from '~/supabase/db';
 
 export interface HeaderProps {
   userSignal: Signal<User | null | undefined>;
 }
 
 export default component$(({ userSignal }: HeaderProps) => {
+  const handleOAuthLogin = $(async (provider: Provider) => {
+    // You need to enable the third party auth you want in Authentication > Settings
+    // Read more on: https://supabase.com/docs/guides/auth#third-party-logins
+    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    if (error) console.log('Error: ', error.message);
+  });
+
   return (
     <header class="bg-emerald-200 p-4 drop-shadow">
       <div class="flex items-center justify-between">
         <h1 class="flex gap-3">
           <a href="/" title="qwik">
             <QwikLogo height={50} width={143} />
-          </a>{" "}
+          </a>{' '}
           <span class="-mt-2 text-5xl font-medium">Todo</span>
         </h1>
         {userSignal.value ? (
-          <span>Hello...</span>
+          <div class="flex items-center gap-2">
+            <span>Hello...</span>
+            {!!userSignal.value?.user_metadata.avatar_url && (
+              <>
+                <img
+                  class="aspect-square w-12 rounded-full"
+                  src={userSignal.value?.user_metadata.avatar_url}
+                  alt="User Avatar"
+                />
+              </>
+            )}
+          </div>
         ) : (
           <a
             href="#"
             class="rounded-2 flex h-min justify-center gap-2 border-2 border-green-700 p-2 text-base font-medium shadow-sm hover:border-green-900 hover:bg-gray-300"
+            preventdefault:click
+            onClick$={() => handleOAuthLogin('github')}
           >
             <span>Login with</span>
             <svg
