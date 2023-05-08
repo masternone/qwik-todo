@@ -1,21 +1,25 @@
 import type { DocumentHead } from '@builder.io/qwik-city';
-import type { todoType } from '~/supabase/schema';
 import type {
   PostgrestResponseFailure,
   PostgrestResponseSuccess
 } from '@supabase/postgrest-js';
+import type { User } from '@supabase/supabase-js';
+import type { todoType } from '~/supabase/schema';
 import {
   $,
   component$,
   Resource,
   useResource$,
-  useSignal,
-  useVisibleTask$
+  useSignal
 } from '@builder.io/qwik';
-import { supabase } from '~/supabase/db';
+import { isServer } from '@builder.io/qwik/build';
+import { supabase, supabaseServer } from '~/supabase/db';
+import { useUserFromCookie } from '~/routes/layout';
 
 export default component$(() => {
-  const isShowComplete = useSignal(false);
+  const isShowComplete = useSignal(true);
+  const userSignal = useSignal<User | null>(useUserFromCookie().value);
+  console.log('userSignal', userSignal.value);
 
   const handleCompleteChange = $<(id: string, checked: boolean) => void>(
     async (id, checked) => {
@@ -24,7 +28,7 @@ export default component$(() => {
         .from('ToDo')
         .update({ complete: checked })
         .eq('id', id);
-      console.log(response);
+      console.log('update', response);
       if (response.error) console.error(response.error);
     }
   );
@@ -35,19 +39,33 @@ export default component$(() => {
       | PostgrestResponseSuccess<todoType[]>
       | PostgrestResponseFailure;
     if (isShowComplete.value) {
-      response = await supabase.from('ToDo').select('*');
+      if (isServer) {
+        response = await supabaseServer
+          .from('ToDo')
+          .select('*')
+          .eq('user_id', userSignal.value?.id);
+      } else {
+        response = await supabase.from('ToDo').select('*');
+      }
     } else {
-      response = await supabase.from('ToDo').select('*').eq('complete', false);
+      if (isServer) {
+        response = await supabaseServer
+          .from('ToDo')
+          .select('*')
+          .eq('complete', false)
+          .eq('user_id', userSignal.value?.id);
+      } else {
+        response = await supabase
+          .from('ToDo')
+          .select('*')
+          .eq('complete', false);
+      }
     }
+    console.log('select', response);
     if (response.status === 200) {
       return response.data || [];
     }
     return [];
-  });
-
-  // this will force the data to be received once the page is loaded
-  useVisibleTask$(() => {
-    isShowComplete.value = true;
   });
 
   return (

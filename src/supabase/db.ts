@@ -5,3 +5,8 @@ export const supabase = createClient<DataBase>(
   import.meta.env.PUBLIC_SUPABASE_URL,
   import.meta.env.PUBLIC_SUPABASE_ANON_KEY
 );
+
+export const supabaseServer = createClient<DataBase>(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_SERVER_KEY
+);
