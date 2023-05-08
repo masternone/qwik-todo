@@ -19,16 +19,13 @@ import { useUserFromCookie } from '~/routes/layout';
 export default component$(() => {
   const isShowComplete = useSignal(true);
   const userSignal = useSignal<User | null>(useUserFromCookie().value);
-  console.log('userSignal', userSignal.value);
 
   const handleCompleteChange = $<(id: string, checked: boolean) => void>(
     async (id, checked) => {
-      console.log({ id, checked });
       const response = await supabase
         .from('ToDo')
         .update({ complete: checked })
         .eq('id', id);
-      console.log('update', response);
       if (response.error) console.error(response.error);
     }
   );
@@ -61,7 +58,6 @@ export default component$(() => {
           .eq('complete', false);
       }
     }
-    console.log('select', response);
     if (response.status === 200) {
       return response.data || [];
     }

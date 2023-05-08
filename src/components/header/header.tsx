@@ -13,12 +13,12 @@ export default component$(({ userSignal }: HeaderProps) => {
     // You need to enable the third party auth you want in Authentication > Settings
     // Read more on: https://supabase.com/docs/guides/auth#third-party-logins
     const { error } = await supabase.auth.signInWithOAuth({ provider });
-    if (error) console.log('Error: ', error.message);
+    if (error) console.error('Error: ', error.message);
   });
 
   const handleLogout = $(async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) console.log('Error: ', error.message);
+    if (error) console.error('Error: ', error.message);
   });
 
   return (
