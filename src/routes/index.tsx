@@ -50,7 +50,6 @@ export default component$(() => {
 
   const handleTodoDelete = $(async (id: string) => {
     const response = await supabase.from('ToDo').delete().eq('id', id);
-    console.log({ response });
     if (response.status === 204) {
       todoChanged.value = !todoChanged.value;
     }
@@ -89,10 +88,6 @@ export default component$(() => {
       }
     }
     if (response.status === 200) {
-      console.log({
-        'todoCount.value': todoChanged.value,
-        'response.data?.length': response.data?.length
-      });
       return response.data || [];
     }
     return [];
