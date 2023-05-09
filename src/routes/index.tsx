@@ -15,6 +15,7 @@ import {
 import { isServer } from '@builder.io/qwik/build';
 import { supabase, supabaseServer } from '~/supabase/db';
 import { useUserFromCookie } from '~/routes/layout';
+import { Cancel } from '~/components/icons/cancel';
 
 export default component$(() => {
   const isShowComplete = useSignal(true);
@@ -88,6 +89,10 @@ export default component$(() => {
       }
     }
     if (response.status === 200) {
+      console.log({
+        'todoCount.value': todoChanged.value,
+        'response.data?.length': response.data?.length
+      });
       return response.data || [];
     }
     return [];
@@ -134,6 +139,14 @@ export default component$(() => {
                     />
                     <span>{todo.todo}</span>
                   </label>
+                  <a
+                    href="#"
+                    title="Delete Todo"
+                    preventdefault:click
+                    onClick$={() => handleTodoDelete(todo.id)}
+                  >
+                    <Cancel />
+                  </a>
                 </div>
               ))}
             </>
