@@ -18,9 +18,15 @@ import { useUserFromCookie } from '~/routes/layout';
 
 export default component$(() => {
   const isShowComplete = useSignal(true);
+  /**
+   * This value is tracked when the todos change. Without this flag when you
+   * creat or delete a todo the list wont update
+   **/
+  const todoChanged = useSignal(false);
+  const newTodo = useSignal('');
   const userSignal = useSignal<User | null>(useUserFromCookie().value);
 
-  const handleCompleteChange = $<(id: string, checked: boolean) => void>(
+  const handleTodoCompleteChange = $<(id: string, checked: boolean) => void>(
     async (id, checked) => {
       const response = await supabase
         .from('ToDo')
@@ -30,8 +36,31 @@ export default component$(() => {
     }
   );
 
+  const handleTodoCreate = $(async () => {
+    const response = await supabase
+      .from('ToDo')
+      .insert({ todo: newTodo.value, user_id: userSignal.value?.id });
+    if (response.status === 201) {
+      todoChanged.value = !todoChanged.value;
+      newTodo.value = '';
+    }
+    if (response.error) console.error(response.error);
+  });
+
+  const handleTodoDelete = $(async (id: string) => {
+    const response = await supabase.from('ToDo').delete().eq('id', id);
+    console.log({ response });
+    if (response.status === 204) {
+      todoChanged.value = !todoChanged.value;
+    }
+    if (response.error) console.error(response.error);
+  });
+
   const todos = useResource$<todoType[]>(async ({ track }) => {
-    track(() => isShowComplete.value);
+    track(() => ({
+      isShowComplete: isShowComplete.value,
+      todoChanged: todoChanged.value
+    }));
     let response:
       | PostgrestResponseSuccess<todoType[]>
       | PostgrestResponseFailure;
@@ -93,14 +122,14 @@ export default component$(() => {
           onResolved={(todos) => (
             <>
               {todos.map((todo) => (
-                <div key={todo.id}>
-                  <label for={todo.id} class="flex gap-2">
+                <div key={todo.id} class="flex items-center gap-2">
+                  <label for={todo.id} class="flex items-center gap-2">
                     <input
                       type="checkbox"
                       id={todo.id}
                       checked={todo.complete}
                       onChange$={(event, currentTarget) =>
-                        handleCompleteChange(todo.id, currentTarget.checked)
+                        handleTodoCompleteChange(todo.id, currentTarget.checked)
                       }
                     />
                     <span>{todo.todo}</span>
@@ -110,6 +139,33 @@ export default component$(() => {
             </>
           )}
         />
+      </section>
+      <section>
+        <form class="max-w-max px-4">
+          <div class="flex items-center border-b border-emerald-400 py-2">
+            <input
+              bind:value={newTodo}
+              class="mr-3 w-full appearance-none border-none bg-transparent px-2 py-1 leading-tight text-gray-700 focus:outline-none"
+              type="text"
+              placeholder="New Todo"
+              aria-label="New Todo"
+            />
+            <button
+              class="shrink-0 rounded border-4 border-emerald-400 bg-emerald-400 px-2 py-1 text-sm text-white hover:border-green-400 hover:bg-green-400 focus:border-green-400 focus:bg-green-400 focus:outline-none"
+              type="button"
+              onClick$={handleTodoCreate}
+            >
+              Create ToDo
+            </button>
+            <button
+              class="shrink-0 rounded border-4 border-transparent px-2 py-1 text-sm text-emerald-400 hover:text-green-400 hover:underline focus:text-green-400 focus:underline focus:outline-none"
+              type="button"
+              onClick$={() => (newTodo.value = '')}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </section>
     </>
   );
